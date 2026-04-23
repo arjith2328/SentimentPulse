@@ -1,0 +1,16 @@
+streamlit
+pandas
+numpy
+scikit-learn
+nltk
+textblob
+tensorflow
+stable-baselines3
+gymnasium
+sqlalchemy
+plotly
+wordcloud
+matplotlib
+seaborn
+xgboost
+scipy
