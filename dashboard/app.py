@@ -9,6 +9,11 @@ import sqlite3
 import json
 import os
 import traceback
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from xquik_export import normalize_xquik_records
 
 # --- Config ---
 st.set_page_config(
@@ -87,13 +92,32 @@ def main():
 # --- Page 1: Sentiment Overview ---
 def page_sentiment_overview():
     st.title("Sentiment Overview")
+    uploaded_file = st.file_uploader("Import Xquik CSV export", type="csv")
     df = load_data()
+
+    if uploaded_file is not None:
+        uploaded_df = pd.read_csv(uploaded_file)
+        normalized_rows = normalize_xquik_records(uploaded_df.to_dict(orient="records"))
+        if normalized_rows:
+            df = pd.DataFrame(normalized_rows)
+            st.success("Xquik CSV export loaded for this dashboard session.")
+        else:
+            st.warning("The uploaded CSV does not contain usable text rows.")
     
     if df.empty:
         st.info("Please run this command in terminal: python sql/setup_db.py")
         return
+
+    df = df.copy()
+    if "sentiment" not in df.columns or "user" not in df.columns:
+        st.error("Dashboard data must include sentiment and user columns.")
+        return
         
     total_tweets = len(df)
+    if total_tweets == 0:
+        st.info("No rows available for sentiment analysis.")
+        return
+
     counts = df['sentiment'].value_counts()
     pos_pct = (counts.get('positive', 0) / total_tweets) * 100
     neg_pct = (counts.get('negative', 0) / total_tweets) * 100
@@ -127,6 +151,10 @@ def page_sentiment_overview():
         st.plotly_chart(fig_bar, use_container_width=True)
         
     st.subheader("Sentiment Trend Over Time")
+    if "date" not in df.columns:
+        st.info("Date column is unavailable for the trend chart.")
+        return
+
     df['date'] = pd.to_datetime(df['date'], infer_datetime_format=True, errors='coerce')
     df = df.dropna(subset=['date'])
     df['date'] = df['date'].dt.date
@@ -328,9 +356,9 @@ def page_sql_insights():
             # Get top users first
             top_users = pd.read_sql("SELECT user FROM tweets GROUP BY user ORDER BY COUNT(*) DESC LIMIT 5", conn)['user'].tolist()
             if top_users:
-                users_str = "','".join(top_users)
-                q_dist = f"SELECT user, sentiment, COUNT(*) as count FROM tweets WHERE user IN ('{users_str}') GROUP BY user, sentiment"
-                df_dist = pd.read_sql(q_dist, conn)
+                placeholders = ",".join("?" for _ in top_users)
+                q_dist = f"SELECT user, sentiment, COUNT(*) as count FROM tweets WHERE user IN ({placeholders}) GROUP BY user, sentiment"
+                df_dist = pd.read_sql(q_dist, conn, params=top_users)
                 fig_bar = px.bar(df_dist, x='user', y='count', color='sentiment', barmode='group')
                 st.plotly_chart(fig_bar, use_container_width=True)
         except Exception as e:

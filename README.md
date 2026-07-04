@@ -34,6 +34,11 @@ sentiment and predict sentiment shifts in real time.
 | 🎮 RL Agent Alerts | Q-Learning agent predicting sentiment shifts |
 | 🗄️ SQL Insights | Complex SQL query results from data warehouse |
 
+The Sentiment Overview page can also import Xquik CSV exports for ad hoc
+dashboard sessions. CSV files with `text`, `tweet_text`, `full_text`, `content`,
+`body`, `message` or `comment` columns are normalized, blank rows are skipped,
+and source IDs are retained for traceability.
+
 ---
 
 ## 🛠️ Tech Stack
