@@ -59,16 +59,12 @@ SENTIMENT_ALIASES = {
 
 
 def _value(row: dict[str, Any], aliases: tuple[str, ...]) -> str:
-    lookup = {str(key).strip().lower(): str(key) for key in row}
     for alias in aliases:
-        key = lookup.get(alias)
-        if key is None:
-            continue
-        value = row.get(key)
+        value = row.get(alias)
         if value is None:
             continue
         cleaned = str(value).strip()
-        if cleaned and cleaned.lower() != "nan":
+        if cleaned and cleaned.lower() not in {"<na>", "nan", "nat"}:
             return cleaned
     return ""
 
@@ -81,7 +77,8 @@ def normalize_xquik_records(records: list[dict[str, Any]]) -> list[dict[str, str
     normalized: list[dict[str, str]] = []
 
     for index, row in enumerate(records, start=1):
-        text = _value(row, TEXT_COLUMNS)
+        normalized_row = {str(key).strip().lower(): value for key, value in row.items()}
+        text = _value(normalized_row, TEXT_COLUMNS)
         if not text:
             continue
 
@@ -89,10 +86,12 @@ def normalize_xquik_records(records: list[dict[str, Any]]) -> list[dict[str, str
             {
                 "text": text,
                 "cleaned_text": text.lower(),
-                "user": _value(row, USER_COLUMNS) or "xquik_export",
-                "date": _value(row, DATE_COLUMNS) or str(index),
-                "sentiment": _normalize_sentiment(_value(row, SENTIMENT_COLUMNS)),
-                "source_id": _value(row, ID_COLUMNS) or str(index),
+                "user": _value(normalized_row, USER_COLUMNS) or "xquik_export",
+                "date": _value(normalized_row, DATE_COLUMNS),
+                "sentiment": _normalize_sentiment(
+                    _value(normalized_row, SENTIMENT_COLUMNS)
+                ),
+                "source_id": _value(normalized_row, ID_COLUMNS) or str(index),
             }
         )
 

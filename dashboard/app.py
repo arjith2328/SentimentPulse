@@ -9,11 +9,8 @@ import sqlite3
 import json
 import os
 import traceback
-import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from xquik_export import normalize_xquik_records
+from dashboard.xquik_export import normalize_xquik_records
 
 # --- Config ---
 st.set_page_config(
@@ -114,10 +111,6 @@ def page_sentiment_overview():
         return
         
     total_tweets = len(df)
-    if total_tweets == 0:
-        st.info("No rows available for sentiment analysis.")
-        return
-
     counts = df['sentiment'].value_counts()
     pos_pct = (counts.get('positive', 0) / total_tweets) * 100
     neg_pct = (counts.get('negative', 0) / total_tweets) * 100

@@ -1,6 +1,6 @@
 import unittest
 
-from xquik_export import normalize_xquik_records
+from dashboard.xquik_export import normalize_xquik_records
 
 
 class XquikExportTests(unittest.TestCase):
@@ -41,6 +41,21 @@ class XquikExportTests(unittest.TestCase):
 
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["sentiment"], "neutral")
+
+    def test_matches_columns_case_insensitively_without_fake_dates(self):
+        rows = normalize_xquik_records(
+            [
+                {
+                    "Tweet_Text": "Mixed Case",
+                    "Author_Username": "analyst",
+                    "Created_At": float("nan"),
+                }
+            ]
+        )
+
+        self.assertEqual(rows[0]["text"], "Mixed Case")
+        self.assertEqual(rows[0]["user"], "analyst")
+        self.assertEqual(rows[0]["date"], "")
 
 
 if __name__ == "__main__":

@@ -37,7 +37,10 @@ sentiment and predict sentiment shifts in real time.
 The Sentiment Overview page can also import Xquik CSV exports for ad hoc
 dashboard sessions. CSV files with `text`, `tweet_text`, `full_text`, `content`,
 `body`, `message` or `comment` columns are normalized, blank rows are skipped,
-and source IDs are retained for traceability.
+and source IDs are retained for traceability. See the
+[Xquik repository](https://github.com/Xquik-dev/x-twitter-scraper) for export
+workflows. Xquik is an independent third-party service. Not affiliated with
+X Corp. "Twitter" and "X" are trademarks of X Corp.
 
 ---
 
